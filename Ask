@@ -1,0 +1,10 @@
+Subject: Amazon Quick — Can S2S OAuth connector retrieve secrets from AWS Secrets Manager?
+What we're building: A custom OpenAPI action connector in Amazon Quick that calls our API Gateway, using Service-to-Service OAuth with Okta as the authorization server.
+The blocker: Our security policy requires all OAuth client IDs and secrets to be stored in AWS Secrets Manager and retrieved at runtime via an IAM role. Quick's S2S OAuth connector form requires us to paste the Client ID and Client Secret directly, which then live in Quick's internal credential store. We cannot find a way to reference a Secrets Manager ARN or have Quick assume an IAM role to fetch credentials.
+Questions:
+
+Can Amazon Quick action connectors retrieve OAuth credentials from AWS Secrets Manager via IAM role? If so, how?
+If not, what is the recommended AWS pattern for customers who must keep OAuth secrets in Secrets Manager?
+Is this capability on the Quick roadmap?
+
+Please include AWS account ID, region, and Quick edition at the top before submitting.
