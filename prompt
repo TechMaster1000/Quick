@@ -1,0 +1,44 @@
+Write a bash script that creates a dedicated AWS IAM role for an Amazon Q Business plugin (used as an OpenAPI connector in Amazon Quick Suite) to read OAuth credentials from AWS Secrets Manager.
+Context:
+When creating a Q Business plugin via aws qbusiness create-plugin with oAuth2ClientCredentialConfiguration, the API requires a roleArn of an IAM role that Q Business assumes at runtime to fetch OAuth credentials from a Secrets Manager secret. This role must be dedicated to this purpose — not reused from existing roles like QuickSightExecutionRole — for principle of least privilege, audit clarity, and blast radius reasons.
+Requirements:
+The script must accept these inputs (as CLI flags or environment variables):
+
+AWS region
+AWS account ID (auto-detect via aws sts get-caller-identity if not provided)
+IAM role name (default to something like QBusinessOktaSecretReader)
+Secrets Manager secret ARN that the role needs to read
+Optional: KMS key ARN if the secret is encrypted with a customer-managed CMK
+
+The script must:
+
+Validate inputs and confirm AWS CLI is authenticated
+Check if the role already exists; if so, prompt before overwriting or exit cleanly
+Create the IAM role with this trust policy:
+
+Principal: qbusiness.amazonaws.com service
+Action: sts:AssumeRole
+Condition: aws:SourceAccount equals the current account ID (to prevent confused-deputy attacks)
+
+
+Attach an inline permission policy to the role with:
+
+secretsmanager:GetSecretValue on the specific secret ARN provided
+kms:Decrypt on the KMS key ARN if provided
+The KMS statement should be omitted entirely if no KMS key is provided (not a placeholder)
+
+
+Print the resulting role ARN to stdout in a format easy to capture (so it can be piped into a subsequent create-plugin invocation)
+Be idempotent where possible — re-running should not error if resources already exist with the desired configuration
+
+Code quality requirements:
+
+Use set -euo pipefail for safety
+Validate all inputs before any AWS API calls
+Clear error messages that explain what went wrong and what to fix
+No hardcoded values — everything configurable via flags/env vars
+Comments explaining the trust policy and permission policy structure for future maintainers
+Produce the trust policy and permission policy as proper JSON via heredocs or jq, not string concatenation
+
+Output:
+Produce a single self-contained bash script. Include a brief usage example at the top showing how to invoke it. After the script, include a one-paragraph explanation of the trust policy's aws:SourceAccount condition and why it's important.
